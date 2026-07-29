@@ -6,6 +6,7 @@ let currentDifficulty = 'easy';
 let gameStartTime = null;
 let hintsUsed = 0;
 let completedGame = false;
+let boardEventsBound = false;
 
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
@@ -23,14 +24,82 @@ function createBoardElement() {
       input.dataset.blockClass = blockClass;
       input.className = 'sudoku-cell';
       input.classList.add(blockClass);
-      input.addEventListener('input', (event) => {
-        const val = event.target.value.replace(/[^1-9]/g, '');
-        event.target.value = val;
-      });
       rowDiv.appendChild(input);
     }
     boardDiv.appendChild(rowDiv);
   }
+
+  if (!boardEventsBound) {
+    boardDiv.addEventListener('input', handleBoardInput);
+    boardEventsBound = true;
+  }
+}
+
+function isCellValueValid(row, col, value) {
+  if (!value) {
+    return true;
+  }
+
+  for (let currentCol = 0; currentCol < SIZE; currentCol += 1) {
+    if (currentCol !== col && puzzle[row][currentCol] === value) {
+      return false;
+    }
+  }
+
+  for (let currentRow = 0; currentRow < SIZE; currentRow += 1) {
+    if (currentRow !== row && puzzle[currentRow][col] === value) {
+      return false;
+    }
+  }
+
+  const blockRow = Math.floor(row / 3) * 3;
+  const blockCol = Math.floor(col / 3) * 3;
+  for (let currentRow = blockRow; currentRow < blockRow + 3; currentRow += 1) {
+    for (let currentCol = blockCol; currentCol < blockCol + 3; currentCol += 1) {
+      if ((currentRow !== row || currentCol !== col) && puzzle[currentRow][currentCol] === value) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+function updateBoardValidation() {
+  const boardDiv = document.getElementById('sudoku-board');
+  const inputs = boardDiv.querySelectorAll('input.sudoku-cell');
+
+  inputs.forEach((input) => {
+    if (input.disabled || input.value === '') {
+      input.classList.remove('incorrect');
+      return;
+    }
+
+    const row = parseInt(input.dataset.row, 10);
+    const col = parseInt(input.dataset.col, 10);
+    const value = parseInt(input.value, 10);
+    const isValid = isCellValueValid(row, col, value);
+    input.classList.toggle('incorrect', !isValid);
+  });
+}
+
+function handleBoardInput(event) {
+  const input = event.target;
+  if (!input.matches('input.sudoku-cell')) {
+    return;
+  }
+
+  if (input.disabled) {
+    return;
+  }
+
+  const val = input.value.replace(/[^1-9]/g, '');
+  input.value = val;
+
+  const row = parseInt(input.dataset.row, 10);
+  const col = parseInt(input.dataset.col, 10);
+  puzzle[row][col] = val ? parseInt(val, 10) : 0;
+  updateBoardValidation();
 }
 
 function renderPuzzle(puz) {
@@ -55,6 +124,7 @@ function renderPuzzle(puz) {
       }
     }
   }
+  updateBoardValidation();
 }
 
 function updateStatus() {
@@ -116,6 +186,11 @@ function renderLeaderboard() {
   });
 }
 
+function getCompletionMessage() {
+  const elapsedSeconds = gameStartTime === null ? 0 : Math.floor((Date.now() - gameStartTime) / 1000);
+  return `Completed successfully — Time: ${elapsedSeconds}s — Hints used: ${hintsUsed}`;
+}
+
 async function newGame() {
   const difficulty = document.getElementById('difficulty-select').value;
   const res = await fetch(`/new?difficulty=${encodeURIComponent(difficulty)}`);
@@ -174,7 +249,7 @@ async function checkSolution() {
       completedGame = true;
     }
     msg.style.color = '#388e3c';
-    msg.innerText = 'Congratulations! Your score was saved.';
+    msg.innerText = getCompletionMessage();
   } else {
     msg.style.color = '#d32f2f';
     msg.innerText = 'Some cells are incorrect.';
@@ -201,11 +276,12 @@ async function getHint() {
 
   emptyCell.value = data.value;
   emptyCell.disabled = true;
-  emptyCell.classList.add('prefilled');
+  emptyCell.classList.add('prefilled', 'hinted');
   puzzle[row][col] = data.value;
   hintsUsed = data.hints_used ?? hintsUsed + 1;
+  updateBoardValidation();
   updateStatus();
-  document.getElementById('message').innerText = 'Hint used.';
+  document.getElementById('message').innerText = `Hint used — ${getCompletionMessage()}`;
 }
 
 // Wire buttons

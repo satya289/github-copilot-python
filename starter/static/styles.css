@@ -11,6 +11,8 @@
     --cell-focus-bg: #dbeafe;
     --cell-prefilled-bg: #e5e7eb;
     --cell-prefilled-text: #111827;
+    --cell-hint-bg: #dbeafe;
+    --cell-hint-text: #1d4ed8;
     --cell-incorrect-bg: #fee2e2;
     --cell-incorrect-text: #991b1b;
 }
@@ -110,6 +112,13 @@ select {
     background: var(--cell-prefilled-bg);
     font-weight: 700;
     color: var(--cell-prefilled-text);
+}
+
+.sudoku-cell.hinted {
+    background: var(--cell-hint-bg);
+    color: var(--cell-hint-text);
+    box-shadow: inset 0 0 0 2px #2563eb;
+    font-weight: 700;
 }
 
 .sudoku-cell.incorrect {
