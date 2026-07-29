@@ -86,6 +86,37 @@ def test_check_solution_ignores_empty_cells():
     assert response.get_json()['incorrect'] == [[0, 1]]
 
 
+def test_check_solution_requires_a_complete_board_to_be_marked_solved():
+    """The check endpoint should not mark a puzzle as solved while any cells are empty."""
+
+    client = app.test_client()
+    solution = generate_board()
+    CURRENT['solution'] = solution
+
+    board = [row[:] for row in solution]
+    board[0][0] = 0
+
+    response = client.post('/check', json={'board': board})
+
+    assert response.status_code == 200
+    assert response.get_json()['incorrect'] == []
+    assert response.get_json()['solved'] is False
+
+
+def test_check_solution_marks_a_full_correct_board_as_solved():
+    """The check endpoint should mark a fully filled correct board as solved."""
+
+    client = app.test_client()
+    solution = generate_board()
+    CURRENT['solution'] = solution
+
+    response = client.post('/check', json={'board': [row[:] for row in solution]})
+
+    assert response.status_code == 200
+    assert response.get_json()['incorrect'] == []
+    assert response.get_json()['solved'] is True
+
+
 def test_hint_endpoint_returns_the_correct_value():
     """The hint endpoint should return the expected solution value."""
 
@@ -101,3 +132,16 @@ def test_hint_endpoint_returns_the_correct_value():
     assert response.get_json()['value'] == solution[0][1]
     assert CURRENT['hints_used'] == 1
     assert CURRENT['puzzle'][0][1] == solution[0][1]
+
+
+def test_index_page_includes_theme_toggle_and_timer_ui():
+    """The landing page should expose the timer and theme toggle controls."""
+
+    client = app.test_client()
+    response = client.get('/')
+    html = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'id="theme-toggle"' in html
+    assert 'id="timer"' in html
+    assert 'id="sudoku-board"' in html

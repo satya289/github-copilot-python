@@ -1,5 +1,5 @@
 :root {
-    color-scheme: light dark;
+    color-scheme: light;
     --page-bg: #f4f6fb;
     --surface: #ffffff;
     --text: #1f2937;
@@ -15,24 +15,35 @@
     --cell-hint-text: #1d4ed8;
     --cell-incorrect-bg: #fee2e2;
     --cell-incorrect-text: #991b1b;
+    --button-bg: #1976d2;
+    --button-hover-bg: #1565c0;
+    --button-text: #ffffff;
+    --button-secondary-bg: #ffffff;
+    --button-secondary-hover-bg: #f3f4f6;
+    --button-secondary-text: #1f2937;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --page-bg: #0f172a;
-        --surface: #111827;
-        --text: #f8fafc;
-        --muted: #cbd5e1;
-        --grid-border: #94a3b8;
-        --grid-border-soft: #475569;
-        --cell-bg: #1e293b;
-        --cell-alt-bg: #243449;
-        --cell-focus-bg: #1d4ed8;
-        --cell-prefilled-bg: #334155;
-        --cell-prefilled-text: #f8fafc;
-        --cell-incorrect-bg: #7f1d1d;
-        --cell-incorrect-text: #fef2f2;
-    }
+body[data-theme="dark"] {
+    color-scheme: dark;
+    --page-bg: #0f172a;
+    --surface: #111827;
+    --text: #f8fafc;
+    --muted: #cbd5e1;
+    --grid-border: #94a3b8;
+    --grid-border-soft: #475569;
+    --cell-bg: #1e293b;
+    --cell-alt-bg: #243449;
+    --cell-focus-bg: #1d4ed8;
+    --cell-prefilled-bg: #334155;
+    --cell-prefilled-text: #f8fafc;
+    --cell-incorrect-bg: #7f1d1d;
+    --cell-incorrect-text: #fef2f2;
+    --button-bg: #2563eb;
+    --button-hover-bg: #1d4ed8;
+    --button-text: #f8fafc;
+    --button-secondary-bg: #1f2937;
+    --button-secondary-hover-bg: #374151;
+    --button-secondary-text: #f8fafc;
 }
 
 body {
@@ -138,16 +149,26 @@ button {
     padding: 8px 18px;
     margin: 0 8px;
     font-size: 16px;
-    border: none;
-    background: #1976d2;
-    color: #fff;
+    border: 1px solid transparent;
+    background: var(--button-bg);
+    color: var(--button-text);
     border-radius: 4px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, color 0.2s;
 }
 
 button:hover {
-    background: #1565c0;
+    background: var(--button-hover-bg);
+}
+
+#theme-toggle {
+    background: var(--button-secondary-bg);
+    color: var(--button-secondary-text);
+    border-color: var(--grid-border-soft);
+}
+
+#theme-toggle:hover {
+    background: var(--button-secondary-hover-bg);
 }
 
 .status-bar {

@@ -1,12 +1,14 @@
 // Client-side rendering and interaction for the Flask-backed Sudoku
 const SIZE = 9;
 const STORAGE_KEY = 'sudoku-leaderboard';
+const THEME_STORAGE_KEY = 'sudoku-theme';
 let puzzle = [];
 let currentDifficulty = 'easy';
 let gameStartTime = null;
 let hintsUsed = 0;
 let completedGame = false;
 let boardEventsBound = false;
+let timerIntervalId = null;
 
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
@@ -130,13 +132,58 @@ function renderPuzzle(puz) {
 function updateStatus() {
   const timerElement = document.getElementById('timer');
   const hintsElement = document.getElementById('hints-used');
-  if (gameStartTime === null) {
-    timerElement.innerText = 'Time: 0s';
+  if (gameStartTime === null || completedGame) {
+    const elapsed = gameStartTime === null ? 0 : Math.floor((Date.now() - gameStartTime) / 1000);
+    timerElement.innerText = `Time: ${elapsed}s`;
   } else {
     const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
     timerElement.innerText = `Time: ${elapsed}s`;
   }
   hintsElement.innerText = `Hints used: ${hintsUsed}`;
+}
+
+function stopTimer() {
+  if (timerIntervalId !== null) {
+    window.clearInterval(timerIntervalId);
+    timerIntervalId = null;
+  }
+}
+
+function startTimer() {
+  stopTimer();
+  if (gameStartTime === null) {
+    return;
+  }
+  updateStatus();
+  timerIntervalId = window.setInterval(() => {
+    if (!completedGame && gameStartTime !== null) {
+      updateStatus();
+    }
+  }, 1000);
+}
+
+function setTheme(theme) {
+  const nextTheme = theme === 'dark' ? 'dark' : 'light';
+  document.body.dataset.theme = nextTheme;
+  document.documentElement.dataset.theme = nextTheme;
+  const toggleButton = document.getElementById('theme-toggle');
+  if (toggleButton) {
+    toggleButton.setAttribute('aria-pressed', String(nextTheme === 'dark'));
+    toggleButton.innerText = nextTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+  }
+  window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+}
+
+function initializeTheme() {
+  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const initialTheme = storedTheme || (prefersDark ? 'dark' : 'light');
+  setTheme(initialTheme);
+}
+
+function toggleTheme() {
+  const nextTheme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+  setTheme(nextTheme);
 }
 
 function getStoredEntries() {
@@ -201,6 +248,7 @@ async function newGame() {
   hintsUsed = 0;
   completedGame = false;
   updateStatus();
+  startTimer();
   document.getElementById('message').innerText = '';
 }
 
@@ -242,14 +290,19 @@ async function checkSolution() {
     }
   }
 
-  if (incorrect.size === 0) {
+  if (data.solved) {
     if (!completedGame) {
       const elapsedSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
       saveScore(elapsedSeconds);
       completedGame = true;
+      stopTimer();
+      updateStatus();
     }
     msg.style.color = '#388e3c';
     msg.innerText = getCompletionMessage();
+  } else if (incorrect.size === 0) {
+    msg.style.color = '#d32f2f';
+    msg.innerText = 'Puzzle is incomplete.';
   } else {
     msg.style.color = '#d32f2f';
     msg.innerText = 'Some cells are incorrect.';
@@ -281,7 +334,29 @@ async function getHint() {
   hintsUsed = data.hints_used ?? hintsUsed + 1;
   updateBoardValidation();
   updateStatus();
-  document.getElementById('message').innerText = `Hint used — ${getCompletionMessage()}`;
+
+  const checkRes = await fetch('/check', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({board: puzzle})
+  });
+  const checkData = await checkRes.json();
+  const msg = document.getElementById('message');
+
+  if (checkData.solved) {
+    if (!completedGame) {
+      const elapsedSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
+      saveScore(elapsedSeconds);
+      completedGame = true;
+      stopTimer();
+      updateStatus();
+    }
+    msg.style.color = '#388e3c';
+    msg.innerText = getCompletionMessage();
+  } else {
+    msg.style.color = '#1e88e5';
+    msg.innerText = 'Hint used';
+  }
 }
 
 // Wire buttons
@@ -289,6 +364,8 @@ window.addEventListener('load', () => {
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   document.getElementById('hint').addEventListener('click', getHint);
+  document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+  initializeTheme();
   renderLeaderboard();
   updateStatus();
   newGame();

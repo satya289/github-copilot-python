@@ -46,15 +46,19 @@ def check_solution():
         return jsonify({'error': 'No game in progress'}), 400
 
     incorrect = []
+    is_complete = True
     for row in range(sudoku_logic.SIZE):
         for col in range(sudoku_logic.SIZE):
             value = board[row][col]
             if value == 0:
+                is_complete = False
                 continue
             if value != solution[row][col]:
                 incorrect.append([row, col])
 
-    return jsonify({'incorrect': incorrect})
+    solved = is_complete and not incorrect
+
+    return jsonify({'incorrect': incorrect, 'solved': solved})
 
 
 @app.route('/hint')
