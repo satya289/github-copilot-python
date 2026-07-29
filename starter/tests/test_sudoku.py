@@ -49,6 +49,26 @@ def test_difficulty_targets_use_expected_clue_counts():
     assert get_target_clues(difficulty="hard") == 25
 
 
+def test_difficulties_generate_different_numbers_of_empty_cells():
+    """Easy, medium, and hard puzzles should differ in clue density."""
+
+    easy_puzzle, easy_solution = generate_puzzle(difficulty="easy")
+    medium_puzzle, medium_solution = generate_puzzle(difficulty="medium")
+    hard_puzzle, hard_solution = generate_puzzle(difficulty="hard")
+
+    easy_clues = sum(cell != 0 for row in easy_puzzle for cell in row)
+    medium_clues = sum(cell != 0 for row in medium_puzzle for cell in row)
+    hard_clues = sum(cell != 0 for row in hard_puzzle for cell in row)
+
+    assert easy_clues > medium_clues > hard_clues
+    assert count_solutions(easy_puzzle) == 1
+    assert count_solutions(medium_puzzle) == 1
+    assert count_solutions(hard_puzzle) == 1
+    assert easy_solution is not None
+    assert medium_solution is not None
+    assert hard_solution is not None
+
+
 def test_check_solution_ignores_empty_cells():
     """The check endpoint should flag only non-empty incorrect entries."""
 

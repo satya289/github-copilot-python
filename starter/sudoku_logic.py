@@ -132,7 +132,8 @@ def remove_cells(puzzle, target_clues):
     random.shuffle(cells)
 
     for row, col in cells:
-        if sum(1 for value in puzzle[row] if value != EMPTY) <= target_clues:
+        current_clues = sum(1 for row_values in puzzle for value in row_values if value != EMPTY)
+        if current_clues <= target_clues:
             break
 
         original_value = puzzle[row][col]
