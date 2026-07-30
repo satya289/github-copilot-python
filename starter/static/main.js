@@ -194,6 +194,9 @@ function getStoredEntries() {
     return [];
   }
 }
+// Copilot suggested a leaderboard implementation.
+// I reviewed and modified it to keep only the top 10 scores
+// before saving them to localStorage, matching the project requirements.
 
 function saveScore(timeSeconds) {
   const nameInput = document.getElementById('player-name');
