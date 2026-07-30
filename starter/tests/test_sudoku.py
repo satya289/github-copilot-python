@@ -1,8 +1,3 @@
-import os
-import sys
-
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
 from app import CURRENT, app
 from sudoku_logic import (
     count_solutions,
@@ -39,6 +34,14 @@ def test_generated_puzzle_has_exactly_one_solution():
     assert puzzle is not None
     assert solution is not None
     assert count_solutions(puzzle) == 1
+
+
+def test_multiple_generated_puzzles_remain_uniquely_solvable():
+    """Repeated generation should keep producing uniquely solvable puzzles."""
+
+    for _ in range(5):
+        puzzle, _ = generate_puzzle(clues=36)
+        assert count_solutions(puzzle) == 1
 
 
 def test_difficulty_targets_use_expected_clue_counts():

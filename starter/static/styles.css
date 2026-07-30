@@ -8,6 +8,8 @@
     --grid-border-soft: #cbd5e1;
     --cell-bg: #fdfefe;
     --cell-alt-bg: #eef4ff;
+    --block-even-bg: #f7fbff;
+    --block-odd-bg: #e8f1ff;
     --cell-focus-bg: #dbeafe;
     --cell-prefilled-bg: #e5e7eb;
     --cell-prefilled-text: #111827;
@@ -33,6 +35,8 @@ body[data-theme="dark"] {
     --grid-border-soft: #475569;
     --cell-bg: #1e293b;
     --cell-alt-bg: #243449;
+    --block-even-bg: #162233;
+    --block-odd-bg: #233449;
     --cell-focus-bg: #1d4ed8;
     --cell-prefilled-bg: #334155;
     --cell-prefilled-text: #f8fafc;
@@ -80,12 +84,14 @@ select {
 
 #sudoku-board {
     display: inline-block;
-    width: min(92vw, 540px);
+    width: min(92vw, 560px);
+    max-width: 100%;
     margin: 30px auto;
     border: 4px solid var(--grid-border);
     background: var(--surface);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.16);
     overflow: hidden;
+    border-radius: 12px;
 }
 
 .sudoku-row {
@@ -100,18 +106,18 @@ select {
     text-align: center;
     font-size: clamp(14px, 2.3vw, 24px);
     outline: none;
-    background: var(--cell-bg);
+    background: var(--block-even-bg);
     color: var(--text);
     box-sizing: border-box;
     transition: background 0.2s, color 0.2s;
 }
 
 .sudoku-cell.block-even {
-    background: var(--cell-bg);
+    background: var(--block-even-bg);
 }
 
 .sudoku-cell.block-odd {
-    background: var(--cell-alt-bg);
+    background: var(--block-odd-bg);
 }
 
 .sudoku-cell:focus {

@@ -110,6 +110,11 @@ def count_solutions(board, limit=2):
     return solutions
 
 
+def has_unique_solution(board):
+    """Return True when a board has exactly one valid solution."""
+    return count_solutions(board, limit=2) == 1
+
+
 def get_target_clues(clues=36, difficulty=None):
     """Convert a difficulty label or clue count into a target clue count."""
     difficulty_map = {
@@ -139,7 +144,7 @@ def remove_cells(puzzle, target_clues):
         original_value = puzzle[row][col]
         puzzle[row][col] = EMPTY
 
-        if count_solutions(puzzle, limit=2) != 1:
+        if not has_unique_solution(puzzle):
             puzzle[row][col] = original_value
 
     return puzzle
@@ -147,12 +152,16 @@ def remove_cells(puzzle, target_clues):
 
 def generate_puzzle(clues=36, difficulty=None):
     """Create a puzzle and its unique solution from a complete board."""
-    solution = create_completed_board()
-    puzzle = deep_copy(solution)
-    target_clues = get_target_clues(clues=clues, difficulty=difficulty)
-    puzzle = remove_cells(puzzle, target_clues)
+    for _ in range(5):
+        solution = create_completed_board()
+        puzzle = deep_copy(solution)
+        target_clues = get_target_clues(clues=clues, difficulty=difficulty)
+        puzzle = remove_cells(puzzle, target_clues)
 
-    return puzzle, solution
+        if has_unique_solution(puzzle):
+            return puzzle, solution
+
+    raise RuntimeError("Unable to generate a puzzle with exactly one solution")
 
 
 def create_board():
